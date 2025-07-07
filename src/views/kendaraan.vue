@@ -1,106 +1,127 @@
-<script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
-
-// Data kendaraan dummy, nanti bisa diganti fetch API
-const vehicles = ref([
-  {
-    id: 1,
-    merk: "Toyota",
-    tipe: "Avanza",
-    plat_nomor: "B 1234 ABC",
-    status: "Tersedia",
-    harga_sewa: 350000,
-  },
-  {
-    id: 2,
-    merk: "Honda",
-    tipe: "Jazz",
-    plat_nomor: "B 5678 DEF",
-    status: "Disewa",
-    harga_sewa: 400000,
-  },
-  {
-    id: 3,
-    merk: "Suzuki",
-    tipe: "Ertiga",
-    plat_nomor: "B 9012 GHI",
-    status: "Servis",
-    harga_sewa: 300000,
-  },
-]);
-
-function goToAddVehicle() {
-  router.push("/vehicles/add");
-}
-</script>
-
 <template>
-  <div>
-    <h1>Daftar Kendaraan</h1>
-    <button @click="goToAddVehicle" class="btn-add">Tambah Kendaraan</button>
+  <div class="container">
+    <h2>Daftar Kendaraan</h2>
 
-    <table class="vehicles-table">
-      <thead>
-        <tr>
-          <th>Merk</th>
-          <th>Tipe</th>
-          <th>Plat Nomor</th>
-          <th>Status</th>
-          <th>Harga Sewa / Hari</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="vehicle in vehicles" :key="vehicle.id">
-          <td>{{ vehicle.merk }}</td>
-          <td>{{ vehicle.tipe }}</td>
-          <td>{{ vehicle.plat_nomor }}</td>
-          <td>{{ vehicle.status }}</td>
-          <td>Rp {{ vehicle.harga_sewa.toLocaleString() }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <!-- Grid Card -->
+    <div class="grid">
+      <div class="card" v-for="item in kendaraan" :key="item.id">
+        <h3>{{ item.nama }}</h3>
+        <p>Jenis: {{ item.jenis }}</p>
+        <p>Status: {{ item.status }}</p>
+        <div class="actions">
+          <button @click="editKendaraan(item)">Edit</button>
+          <button @click="deleteKendaraan(item.id)">Hapus</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form
+      @submit.prevent="isEditing ? updateKendaraan() : addKendaraan()"
+      class="form"
+    >
+      <input v-model="form.nama" placeholder="Nama Kendaraan" required />
+      <input v-model="form.jenis" placeholder="Jenis (Mobil/Motor)" required />
+      <select v-model="form.status">
+        <option>Tersedia</option>
+        <option>Disewa</option>
+      </select>
+      <button type="submit">{{ isEditing ? "Update" : "Tambah" }}</button>
+    </form>
   </div>
 </template>
 
+<script setup>
+import { ref, onMounted } from "vue";
+
+const kendaraan = ref([]);
+const form = ref({ nama: "", jenis: "", status: "Tersedia" });
+const isEditing = ref(false);
+const editId = ref(null);
+
+const fetchKendaraan = async () => {
+  const res = await fetch("http://localhost:3000/kendaraan");
+  kendaraan.value = await res.json();
+};
+
+onMounted(fetchKendaraan);
+
+const addKendaraan = async () => {
+  await fetch("http://localhost:3000/kendaraan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form.value),
+  });
+  resetForm();
+  fetchKendaraan();
+};
+
+const editKendaraan = (item) => {
+  form.value = { ...item };
+  isEditing.value = true;
+  editId.value = item.id;
+};
+
+const updateKendaraan = async () => {
+  await fetch(`http://localhost:3000/kendaraan/${editId.value}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form.value),
+  });
+  resetForm();
+  fetchKendaraan();
+};
+
+const deleteKendaraan = async (id) => {
+  await fetch(`http://localhost:3000/kendaraan/${id}`, {
+    method: "DELETE",
+  });
+  fetchKendaraan();
+};
+
+const resetForm = () => {
+  form.value = { nama: "", jenis: "", status: "Tersedia" };
+  isEditing.value = false;
+  editId.value = null;
+};
+</script>
+
 <style scoped>
-/* @import "tailwindcss"; */
-h1 {
-  margin-left: 20px;
-  margin-bottom: 1rem;
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
 }
-
-.btn-add {
-  margin-bottom: 1rem;
-  margin-left: 20px;
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
 }
-
-.btn-add:hover {
-  background-color: #1d4ed8;
+.card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f9f9f9;
 }
-
-.vehicles-table {
-  margin-left: 15px;
-  width: 100%;
-  border-collapse: collapse;
+.card h3 {
+  margin: 0 0 10px;
 }
-
-.vehicles-table th,
-.vehicles-table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: left;
+.card .actions {
+  margin-top: 10px;
 }
-
-.vehicles-table th {
-  background-color: #f3f4f6;
+.card button {
+  margin-right: 8px;
+}
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.form input,
+.form select {
+  padding: 6px;
+  flex: 1;
+  min-width: 150px;
 }
 </style>

@@ -1,3 +1,16 @@
+<script setup>
+import { useAuthStore } from "../stores/auth.js";
+import { useRouter } from "vue-router";
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+const logout = () => {
+  authStore.logout();
+  router.push("/login");
+};
+</script>
+
 <template>
   <aside class="sidebar">
     <h2 class="logo">Rental Kendaraan</h2>
@@ -10,6 +23,7 @@
         <li><router-link to="/pelanggan">Pelanggan</router-link></li>
         <li><router-link to="/laporan">Laporan</router-link></li>
       </ul>
+      <button @click="logout" class="logout-button">Logout</button>
     </nav>
   </aside>
 </template>
@@ -52,5 +66,15 @@ nav a:active {
 .router-link-active {
   font-weight: bold;
   text-decoration: underline;
+}
+
+.logout-button {
+  background-color: #ffffff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 2rem;
 }
 </style>

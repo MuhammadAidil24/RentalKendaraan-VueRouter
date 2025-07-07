@@ -9,18 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.1.7",
+    "@quasar/extras": "^1.17.0",
+    "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.4.1",
+    "quasar": "^2.18.1",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@quasar/vite-plugin": "^1.9.0",
     "@vitejs/plugin-vue": "^5.2.3",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.7",
     "vite": "^6.3.5"
-  },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.41.1"
   }
 }
