@@ -1,147 +1,135 @@
-<script setup>
-import { ref, computed } from "vue";
-
-// Data dummy laporan
-const laporanSemua = ref([
-  {
-    id: 1,
-    tanggal: "2025-05-01",
-    customer: "Andi",
-    vehicle: "Avanza",
-    lama_sewa: 2,
-    total: 700000,
-  },
-  {
-    id: 2,
-    tanggal: "2025-05-03",
-    customer: "Budi",
-    vehicle: "Jazz",
-    lama_sewa: 3,
-    total: 1200000,
-  },
-  {
-    id: 3,
-    tanggal: "2025-05-05",
-    customer: "Citra",
-    vehicle: "Ertiga",
-    lama_sewa: 1,
-    total: 300000,
-  },
-]);
-
-const tanggalMulai = ref("");
-const tanggalAkhir = ref("");
-
-const laporanTampil = ref([...laporanSemua.value]);
-
-const totalPendapatan = computed(() =>
-  laporanTampil.value.reduce((acc, item) => acc + item.total, 0)
-);
-
-function filterLaporan() {
-  if (tanggalMulai.value && tanggalAkhir.value) {
-    laporanTampil.value = laporanSemua.value.filter(
-      (item) =>
-        item.tanggal >= tanggalMulai.value && item.tanggal <= tanggalAkhir.value
-    );
-  } else {
-    laporanTampil.value = [...laporanSemua.value];
-  }
-}
-</script>
-
 <template>
-  <div>
-    <h1>Laporan Transaksi</h1>
+  <q-page padding>
+    <div class="text-h5 q-mb-md">Laporan Penyewaan & Pengembalian</div>
 
-    <div class="filters">
-      <label>
-        Dari Tanggal:
-        <input type="date" v-model="tanggalMulai" />
-      </label>
-      <label>
-        Sampai Tanggal:
-        <input type="date" v-model="tanggalAkhir" />
-      </label>
-      <button @click="filterLaporan">Tampilkan</button>
+    <!-- Filter -->
+    <div class="row q-col-gutter-md q-mb-md">
+      <q-input
+        v-model="filter.nama"
+        label="Nama Pelanggan"
+        filled
+        class="col-12 col-md-3"
+      />
+      <q-select
+        v-model="filter.status"
+        :options="['Semua', 'Aktif', 'Kembali']"
+        label="Status"
+        filled
+        class="col-12 col-md-3"
+      />
+      <q-input
+        v-model="filter.tanggalMulai"
+        label="Tanggal Mulai"
+        type="date"
+        filled
+        class="col-6 col-md-3"
+      />
+      <q-input
+        v-model="filter.tanggalAkhir"
+        label="Tanggal Akhir"
+        type="date"
+        filled
+        class="col-6 col-md-3"
+      />
     </div>
 
-    <h2>Total Pendapatan: Rp {{ totalPendapatan.toLocaleString() }}</h2>
+    <!-- Tabel Laporan -->
+    <q-table
+      :rows="filteredData"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+    />
 
-    <table class="reports-table">
-      <thead>
-        <tr>
-          <th>Tanggal</th>
-          <th>Pelanggan</th>
-          <th>Kendaraan</th>
-          <th>Lama Sewa (hari)</th>
-          <th>Total Biaya</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="laporan in laporanTampil" :key="laporan.id">
-          <td>{{ laporan.tanggal }}</td>
-          <td>{{ laporan.customer }}</td>
-          <td>{{ laporan.vehicle }}</td>
-          <td>{{ laporan.lama_sewa }}</td>
-          <td>Rp {{ laporan.total.toLocaleString() }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- Rekap -->
+    <div class="q-mt-md text-subtitle1">
+      Total Penyewaan: {{ filteredData.length }}<br />
+      Total Denda: Rp {{ totalDenda.toLocaleString("id-ID") }}
+    </div>
+  </q-page>
 </template>
 
+<script setup>
+import { ref, computed, onMounted } from "vue";
+
+const penyewaan = ref([]);
+const pengembalian = ref([]);
+const laporan = ref([]);
+
+const filter = ref({
+  nama: "",
+  status: "Semua",
+  tanggalMulai: "",
+  tanggalAkhir: "",
+});
+
+const columns = [
+  { name: "pelanggan", label: "Pelanggan", field: "pelanggan" },
+  { name: "kendaraan", label: "Kendaraan", field: "kendaraan" },
+  { name: "tanggal", label: "Tanggal Sewa", field: "tanggal" },
+  {
+    name: "tanggal_kembali",
+    label: "Tanggal Kembali",
+    field: "tanggal_kembali",
+  },
+  { name: "status", label: "Status", field: "status" },
+  { name: "denda", label: "Denda", field: "denda" },
+];
+
+const fetchData = async () => {
+  const [resPenyewaan, resPengembalian] = await Promise.all([
+    fetch("http://localhost:3000/penyewaan"),
+    fetch("http://localhost:3000/pengembalian"),
+  ]);
+
+  penyewaan.value = await resPenyewaan.json();
+  pengembalian.value = await resPengembalian.json();
+
+  // Gabungkan data
+  laporan.value = penyewaan.value.map((sewa) => {
+    const kembali = pengembalian.value.find((p) => p.penyewaan_id === sewa.id);
+    return {
+      id: sewa.id,
+      pelanggan: sewa.nama_pelanggan?.label || "-",
+      kendaraan: sewa.nama_kendaraan?.label || "-",
+      tanggal: sewa.tanggal,
+      tanggal_kembali: kembali?.tanggal_kembali || "-",
+      status: sewa.status,
+      denda: kembali?.denda || "Rp 0",
+    };
+  });
+};
+
+onMounted(fetchData);
+
+const filteredData = computed(() => {
+  return laporan.value.filter((item) => {
+    const matchNama = item.pelanggan
+      .toLowerCase()
+      .includes(filter.value.nama.toLowerCase());
+    const matchStatus =
+      filter.value.status === "Semua" || item.status === filter.value.status;
+    const matchTanggalMulai = filter.value.tanggalMulai
+      ? item.tanggal >= filter.value.tanggalMulai
+      : true;
+    const matchTanggalAkhir = filter.value.tanggalAkhir
+      ? item.tanggal <= filter.value.tanggalAkhir
+      : true;
+    return matchNama && matchStatus && matchTanggalMulai && matchTanggalAkhir;
+  });
+});
+
+const totalDenda = computed(() => {
+  return filteredData.value.reduce((sum, item) => {
+    const angka = parseInt(item.denda.replace(/\D/g, "")) || 0;
+    return sum + angka;
+  }, 0);
+});
+</script>
+
 <style scoped>
-h1,
-h2 {
-  margin-bottom: 1rem;
-  margin-left: 20px;
-}
-
-.filters {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  margin-left: 20px;
-  flex-wrap: wrap;
-}
-
-.filters label {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.9rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  height: fit-content;
-  cursor: pointer;
-  margin-left: 15px;
-}
-
-button:hover {
-  background-color: #1d4ed8;
-}
-
-.reports-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  margin-left: 15px;
-}
-
-.reports-table th,
-.reports-table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: left;
-}
-
-.reports-table th {
-  background-color: #f3f4f6;
+.q-table {
+  font-size: 14px;
 }
 </style>

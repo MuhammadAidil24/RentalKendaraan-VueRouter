@@ -4,7 +4,7 @@ import router from "./routers/index.js";
 import { createPinia } from "pinia";
 
 // Quasar
-import { Quasar, Notify } from "quasar"; // ✅ tambahkan Notify
+import { Quasar, Dialog, Notify } from "quasar"; // ✅ tambahkan Notify dan dialog
 import quasarIconSet from "quasar/icon-set/material-icons";
 import quasarLang from "quasar/lang/id";
 
@@ -23,6 +23,7 @@ app.use(pinia);
 // ✅ Aktifkan plugin Notify di sini
 app.use(Quasar, {
   plugins: {
+    Dialog,
     Notify,
   },
   iconSet: quasarIconSet,

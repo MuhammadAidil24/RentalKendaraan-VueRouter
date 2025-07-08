@@ -1,95 +1,159 @@
-<script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
-
-// Data pelanggan dummy
-const customers = ref([
-  {
-    id: 1,
-    nama: "Andi Saputra",
-    nomor_ktp: "3174091234560001",
-    telepon: "081234567890",
-  },
-  {
-    id: 2,
-    nama: "Budi Santoso",
-    nomor_ktp: "3174091234560002",
-    telepon: "085678901234",
-  },
-  {
-    id: 3,
-    nama: "Citra Dewi",
-    nomor_ktp: "3174091234560003",
-    telepon: "087812341234",
-  },
-]);
-
-function goToAddCustomer() {
-  router.push("/customers/add");
-}
-</script>
-
 <template>
-  <div>
-    <h1>Data Pelanggan</h1>
-    <button @click="goToAddCustomer" class="btn-add">Tambah Pelanggan</button>
+  <q-page padding>
+    <div class="row items-center justify-between q-mb-md">
+      <div class="text-h6">Data Pelanggan</div>
+      <q-btn
+        color="primary"
+        label="Tambah Pelanggan"
+        icon="person_add"
+        @click="openDialog()"
+      />
+    </div>
 
-    <table class="customers-table">
-      <thead>
-        <tr>
-          <th>Nama</th>
-          <th>Nomor KTP</th>
-          <th>Telepon</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="customer in customers" :key="customer.id">
-          <td>{{ customer.nama }}</td>
-          <td>{{ customer.nomor_ktp }}</td>
-          <td>{{ customer.telepon }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <!-- ✅ Tabel Data Pelanggan -->
+    <q-table
+      title="Daftar Pelanggan"
+      :rows="pelanggan"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+    >
+      <template v-slot:body-cell-aksi="props">
+        <q-td align="center">
+          <q-btn size="sm" icon="edit" flat @click="openDialog(props.row)" />
+          <q-btn
+            size="sm"
+            icon="delete"
+            flat
+            color="negative"
+            @click="hapusPelanggan(props.row.id)"
+          />
+        </q-td>
+      </template>
+    </q-table>
+
+    <!-- ✅ Dialog Tambah/Edit Pelanggan -->
+    <q-dialog v-model="dialog">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">{{ isEdit ? "Edit" : "Tambah" }} Pelanggan</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-input v-model="form.nama" label="Nama" filled dense />
+          <q-input
+            v-model="form.telepon"
+            label="Telepon"
+            filled
+            dense
+            class="q-mt-sm"
+          />
+          <q-input
+            v-model="form.alamat"
+            label="Alamat"
+            filled
+            dense
+            class="q-mt-sm"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Batal" @click="tutupDialog" />
+          <q-btn color="primary" label="Simpan" @click="simpanPelanggan" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </q-page>
 </template>
 
-<style scoped>
-h1 {
-  margin-bottom: 1rem;
-  margin-left: 20px;
-}
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
 
-.btn-add {
-  margin-left: 20px;
-  margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+const $q = useQuasar();
 
-.btn-add:hover {
-  background-color: #1d4ed8;
-}
+const pelanggan = ref([]);
+const dialog = ref(false);
+const isEdit = ref(false); // flag edit
+const selectedId = ref(null); // id pelanggan saat edit
 
-.customers-table {
-  margin-left: 15px;
-  width: 100%;
-  border-collapse: collapse;
-}
+const form = ref({
+  nama: "",
+  telepon: "",
+  alamat: "",
+});
 
-.customers-table th,
-.customers-table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: left;
-}
+const columns = [
+  { name: "nama", label: "Nama", field: "nama", sortable: true },
+  { name: "telepon", label: "Telepon", field: "telepon" },
+  { name: "alamat", label: "Alamat", field: "alamat" },
+  { name: "aksi", label: "Aksi", field: "aksi", sortable: false },
+];
 
-.customers-table th {
-  background-color: #f3f4f6;
-}
-</style>
+const fetchPelanggan = async () => {
+  const res = await fetch("http://localhost:3000/pelanggan");
+  pelanggan.value = await res.json();
+};
+
+const openDialog = (item = null) => {
+  if (item) {
+    form.value = { ...item };
+    selectedId.value = item.id;
+    isEdit.value = true;
+  } else {
+    form.value = { nama: "", telepon: "", alamat: "" };
+    selectedId.value = null;
+    isEdit.value = false;
+  }
+  dialog.value = true;
+};
+
+const tutupDialog = () => {
+  dialog.value = false;
+  form.value = { nama: "", telepon: "", alamat: "" };
+  isEdit.value = false;
+  selectedId.value = null;
+};
+
+const simpanPelanggan = async () => {
+  if (!form.value.nama || !form.value.telepon) {
+    $q.notify({ type: "negative", message: "Nama dan Telepon wajib diisi" });
+    return;
+  }
+
+  const url = isEdit.value
+    ? `http://localhost:3000/pelanggan/${selectedId.value}`
+    : `http://localhost:3000/pelanggan`;
+
+  const method = isEdit.value ? "PUT" : "POST";
+
+  await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form.value),
+  });
+
+  await fetchPelanggan();
+  $q.notify({
+    type: "positive",
+    message: `Data berhasil ${isEdit.value ? "diperbarui" : "ditambahkan"}`,
+  });
+  tutupDialog();
+};
+
+const hapusPelanggan = async (id) => {
+  $q.dialog({
+    title: "Konfirmasi",
+    message: "Yakin ingin menghapus pelanggan ini?",
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    await fetch(`http://localhost:3000/pelanggan/${id}`, { method: "DELETE" });
+    await fetchPelanggan();
+    $q.notify({ type: "positive", message: "Data berhasil dihapus" });
+  });
+};
+
+onMounted(fetchPelanggan);
+</script>

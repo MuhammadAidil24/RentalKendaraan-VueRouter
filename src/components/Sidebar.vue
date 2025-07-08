@@ -1,4 +1,4 @@
-<script setup>
+<!-- <script setup>
 import { useAuthStore } from "../stores/auth.js";
 import { useRouter } from "vue-router";
 
@@ -77,4 +77,4 @@ nav a:active {
   width: 100%;
   margin-top: 2rem;
 }
-</style>
+</style> -->

@@ -27,14 +27,21 @@
         icon="add"
         label="Tambah Penyewaan"
         class="q-mr-sm"
+        @click="goTo('rental')"
       />
       <q-btn
         color="secondary"
         icon="person_add"
         label="Tambah Pelanggan"
         class="q-mr-sm"
+        @click="goTo('pelanggan')"
       />
-      <q-btn color="teal" icon="description" label="Lihat Laporan" />
+      <q-btn
+        color="teal"
+        icon="description"
+        label="Lihat Laporan"
+        @click="goTo('laporan')"
+      />
     </div>
 
     <!-- 🔹 TABEL PENYEWAAN -->
@@ -57,6 +64,12 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+const router = useRouter();
+
+const goTo = (path) => {
+  router.push(`/${path}`);
+};
 
 const stats = ref([
   { label: "Total Kendaraan", value: 0, icon: "directions_car" },
@@ -94,8 +107,8 @@ onMounted(async () => {
   // Update tabel penyewaan
   recentPenyewaan.value = penyewaan.map((p) => ({
     id: p.id,
-    namaPelanggan: p.nama_pelanggan,
-    namaKendaraan: p.nama_kendaraan,
+    namaPelanggan: p.nama_pelanggan?.label || "-",
+    namaKendaraan: p.nama_kendaraan?.label || "-",
     tanggal: p.tanggal,
     status: p.status,
   }));

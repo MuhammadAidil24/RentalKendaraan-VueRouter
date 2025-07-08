@@ -1,101 +1,155 @@
-<script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-
-const router = useRouter();
-
-// Data penyewaan dummy, bisa diganti fetch API
-const rentals = ref([
-  {
-    id: 1,
-    customer: "Andi",
-    vehicle: "Toyota Avanza",
-    tanggal_sewa: "2025-05-01",
-    tanggal_kembali: "2025-05-03",
-    total_biaya: 700000,
-    status: "Selesai",
-  },
-  {
-    id: 2,
-    customer: "Budi",
-    vehicle: "Honda Jazz",
-    tanggal_sewa: "2025-05-05",
-    tanggal_kembali: "2025-05-07",
-    total_biaya: 800000,
-    status: "Sedang Disewa",
-  },
-]);
-
-function goToAddRental() {
-  router.push("/rentals/add");
-}
-</script>
-
 <template>
-  <div>
-    <h1>Daftar Penyewaan</h1>
-    <button @click="goToAddRental" class="btn-add">Tambah Penyewaan</button>
+  <q-page padding>
+    <div class="row items-center justify-between q-mb-md">
+      <div class="text-h6">Data Penyewaan</div>
+      <q-btn
+        color="primary"
+        label="Tambah Penyewaan"
+        icon="add"
+        @click="openDialog"
+      />
+    </div>
 
-    <table class="rentals-table">
-      <thead>
-        <tr>
-          <th>Pelanggan</th>
-          <th>Kendaraan</th>
-          <th>Tanggal Sewa</th>
-          <th>Tanggal Kembali</th>
-          <th>Total Biaya</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="rental in rentals" :key="rental.id">
-          <td>{{ rental.customer }}</td>
-          <td>{{ rental.vehicle }}</td>
-          <td>{{ rental.tanggal_sewa }}</td>
-          <td>{{ rental.tanggal_kembali }}</td>
-          <td>Rp {{ rental.total_biaya.toLocaleString() }}</td>
-          <td>{{ rental.status }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <q-table
+      title="Daftar Penyewaan"
+      :rows="penyewaan"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+    />
+
+    <!-- Dialog Tambah Penyewaan -->
+    <q-dialog v-model="dialog">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Tambah Penyewaan</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-select
+            v-model="form.pelanggan"
+            :options="pelangganOptions"
+            label="Pelanggan"
+          />
+          <q-select
+            v-model="form.kendaraan"
+            :options="kendaraanOptions"
+            label="Kendaraan"
+            class="q-mt-sm"
+          />
+          <q-input
+            v-model="form.tanggal"
+            label="Tanggal Sewa"
+            type="date"
+            class="q-mt-sm"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Batal" v-close-popup />
+          <q-btn color="primary" label="Simpan" @click="simpanPenyewaan" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </q-page>
 </template>
 
-<style scoped>
-h1 {
-  margin-bottom: 1rem;
-  margin-left: 20px;
-}
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
 
-.btn-add {
-  margin-bottom: 1rem;
-  margin-left: 20px;
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
+const $q = useQuasar();
+const penyewaan = ref([]);
+const pelangganOptions = ref([]);
+const kendaraanOptions = ref([]);
+const dialog = ref(false);
+const form = ref({ pelanggan: "", kendaraan: "", tanggal: "" });
 
-.btn-add:hover {
-  background-color: #1d4ed8;
-}
+const columns = [
+  {
+    name: "nama_pelanggan",
+    label: "Pelanggan",
+    field: (row) => row.nama_pelanggan.label,
+    sortable: true,
+  },
+  {
+    name: "nama_kendaraan",
+    label: "Kendaraan",
+    field: (row) => row.nama_kendaraan.label,
+    sortable: true,
+  },
+  {
+    name: "tanggal",
+    label: "Tanggal Sewa",
+    field: "tanggal",
+    sortable: true,
+  },
+  {
+    name: "status",
+    label: "Status",
+    field: "status",
+    sortable: true,
+  },
+];
 
-.rentals-table {
-  margin-left: 15px;
-  width: 100%;
-  border-collapse: collapse;
-}
+const fetchData = async () => {
+  const [res1, res2, res3] = await Promise.all([
+    fetch("http://localhost:3000/penyewaan"),
+    fetch("http://localhost:3000/pelanggan"),
+    fetch("http://localhost:3000/kendaraan"),
+  ]);
+  penyewaan.value = await res1.json();
+  const pelanggan = await res2.json();
+  const kendaraan = await res3.json();
 
-.rentals-table th,
-.rentals-table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: left;
-}
+  pelangganOptions.value = pelanggan.map((p) => ({
+    label: p.nama,
+    value: p.nama,
+  }));
+  kendaraanOptions.value = kendaraan
+    .filter((k) => k.status === "Tersedia")
+    .map((k) => ({ label: k.nama, value: k.nama }));
+};
 
-.rentals-table th {
-  background-color: #f3f4f6;
-}
-</style>
+const openDialog = () => {
+  form.value = { pelanggan: "", kendaraan: "", tanggal: "" };
+  dialog.value = true;
+};
+
+const simpanPenyewaan = async () => {
+  if (!form.value.pelanggan || !form.value.kendaraan) {
+    $q.notify({ type: "negative", message: "Lengkapi semua data" });
+    return;
+  }
+
+  await fetch("http://localhost:3000/penyewaan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nama_pelanggan: form.value.pelanggan,
+      nama_kendaraan: form.value.kendaraan,
+      tanggal: form.value.tanggal,
+      status: "Aktif",
+    }),
+  });
+
+  await fetch(`http://localhost:3000/kendaraan?nama=${form.value.kendaraan}`)
+    .then((r) => r.json())
+    .then(async (data) => {
+      if (data[0]) {
+        await fetch(`http://localhost:3000/kendaraan/${data[0].id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...data[0], status: "Disewa" }),
+        });
+      }
+    });
+
+  dialog.value = false;
+  await fetchData();
+  $q.notify({ type: "positive", message: "Data penyewaan berhasil disimpan" });
+};
+
+onMounted(fetchData);
+</script>

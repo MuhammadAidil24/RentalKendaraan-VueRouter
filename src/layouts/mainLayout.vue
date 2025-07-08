@@ -37,6 +37,10 @@
           <q-item-section avatar><q-icon name="assignment" /></q-item-section>
           <q-item-section>Penyewaan</q-item-section>
         </q-item>
+        <q-item to="/pengembalian" clickable v-ripple>
+          <q-item-section avatar><q-icon name="history" /></q-item-section>
+          <q-item-section>Pengembalian</q-item-section>
+        </q-item>
         <q-item to="/laporan" clickable v-ripple>
           <q-item-section avatar><q-icon name="insert_chart" /></q-item-section>
           <q-item-section>Laporan</q-item-section>

@@ -1,76 +1,173 @@
-<script setup>
-import { ref } from "vue";
-
-const returns = ref([
-  {
-    id: 1,
-    customer: "Andi",
-    vehicle: "Toyota Avanza",
-    tanggal_sewa: "2025-05-01",
-    tanggal_dikembalikan: "2025-05-03",
-    denda: 0,
-    kondisi_kendaraan: "Baik",
-  },
-  {
-    id: 2,
-    customer: "Budi",
-    vehicle: "Honda Jazz",
-    tanggal_sewa: "2025-05-05",
-    tanggal_dikembalikan: "2025-05-08",
-    denda: 150000,
-    kondisi_kendaraan: "Lecet ringan",
-  },
-]);
-</script>
-
 <template>
-  <div>
-    <h1>Daftar Pengembalian</h1>
-    <table class="returns-table">
-      <thead>
-        <tr>
-          <th>Pelanggan</th>
-          <th>Kendaraan</th>
-          <th>Tanggal Sewa</th>
-          <th>Tanggal Dikembalikan</th>
-          <th>Denda</th>
-          <th>Kondisi Kendaraan</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="ret in returns" :key="ret.id">
-          <td>{{ ret.customer }}</td>
-          <td>{{ ret.vehicle }}</td>
-          <td>{{ ret.tanggal_sewa }}</td>
-          <td>{{ ret.tanggal_dikembalikan }}</td>
-          <td>Rp {{ ret.denda.toLocaleString() }}</td>
-          <td>{{ ret.kondisi_kendaraan }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <q-page padding>
+    <div class="text-h5 q-mb-md">Daftar Pengembalian</div>
+
+    <q-table
+      :rows="pengembalian"
+      :columns="columns"
+      row-key="id"
+      flat
+      bordered
+    />
+
+    <!-- Dialog Pengembalian -->
+    <q-dialog v-model="dialog">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Proses Pengembalian</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-select
+            v-model="form.penyewaan"
+            :options="penyewaanOptions"
+            label="Pilih Penyewaan"
+            option-label="label"
+            option-value="value"
+            emit-value
+            map-options
+          />
+          <q-input
+            v-model="form.tanggal_kembali"
+            label="Tanggal Dikembalikan"
+            type="date"
+            class="q-mt-sm"
+          />
+          <q-input
+            v-model="form.denda"
+            label="Denda (Rp)"
+            type="number"
+            class="q-mt-sm"
+          />
+          <q-input
+            v-model="form.kondisi"
+            label="Kondisi Kendaraan"
+            type="text"
+            class="q-mt-sm"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Batal" v-close-popup />
+          <q-btn color="primary" label="Simpan" @click="simpanPengembalian" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-btn
+      color="primary"
+      icon="assignment_return"
+      label="Proses Pengembalian"
+      class="q-mt-md"
+      @click="openDialog"
+    />
+  </q-page>
 </template>
 
-<style scoped>
-h1 {
-  margin-left: 20px;
-  margin-bottom: 1rem;
-}
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
 
-.returns-table {
-  margin-left: 15px;
-  width: 100%;
-  border-collapse: collapse;
-}
+const $q = useQuasar();
+const pengembalian = ref([]);
+const penyewaanOptions = ref([]);
+const penyewaanMap = ref({});
+const dialog = ref(false);
+const form = ref({
+  penyewaan: null,
+  tanggal_kembali: "",
+  denda: 0,
+  kondisi: "",
+});
 
-.returns-table th,
-.returns-table td {
-  border: 1px solid #ddd;
-  padding: 0.75rem;
-  text-align: left;
-}
+const columns = [
+  { name: "pelanggan", label: "Pelanggan", field: "pelanggan" },
+  { name: "kendaraan", label: "Kendaraan", field: "kendaraan" },
+  { name: "tanggal", label: "Tanggal Sewa", field: "tanggal" },
+  {
+    name: "tanggal_kembali",
+    label: "Tanggal Dikembalikan",
+    field: "tanggal_kembali",
+  },
+  { name: "denda", label: "Denda", field: "denda" },
+  { name: "kondisi", label: "Kondisi Kendaraan", field: "kondisi" },
+];
 
-.returns-table th {
-  background-color: #f3f4f6;
-}
-</style>
+const fetchData = async () => {
+  const [pengRes, sewaRes] = await Promise.all([
+    fetch("http://localhost:3000/pengembalian"),
+    fetch("http://localhost:3000/penyewaan"),
+  ]);
+  const pengData = await pengRes.json();
+  const sewaData = await sewaRes.json();
+
+  penyewaanMap.value = {};
+  sewaData.forEach((p) => (penyewaanMap.value[p.id] = p));
+
+  pengembalian.value = pengData.map((p) => {
+    const penyewaan = penyewaanMap.value[p.penyewaan_id] || {};
+    return {
+      ...p,
+      pelanggan: penyewaan.nama_pelanggan?.label || "-",
+      kendaraan: penyewaan.nama_kendaraan?.label || "-",
+      tanggal: penyewaan.tanggal || "-",
+    };
+  });
+
+  penyewaanOptions.value = sewaData
+    .filter((p) => p.status === "Aktif")
+    .map((p) => ({
+      label: `${p.nama_pelanggan.label} - ${p.nama_kendaraan.label} (${p.tanggal})`,
+      value: p.id,
+    }));
+};
+
+const openDialog = () => {
+  form.value = { penyewaan: null, tanggal_kembali: "", denda: 0, kondisi: "" };
+  dialog.value = true;
+};
+
+const simpanPengembalian = async () => {
+  const id = form.value.penyewaan;
+  const data = penyewaanMap.value[id];
+  if (!data || !form.value.tanggal_kembali) {
+    $q.notify({ type: "negative", message: "Lengkapi semua data!" });
+    return;
+  }
+
+  await fetch("http://localhost:3000/pengembalian", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      penyewaan_id: data.id, // ⬅️ WAJIB DITAMBAHKAN
+      tanggal_kembali: form.value.tanggal_kembali,
+      denda: `Rp ${parseInt(form.value.denda).toLocaleString("id-ID")}`,
+      kondisi: form.value.kondisi,
+    }),
+  });
+
+  await fetch(`http://localhost:3000/penyewaan/${data.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...data, status: "Kembali" }),
+  });
+
+  const kendaraanRes = await fetch(
+    `http://localhost:3000/kendaraan?nama=${data.nama_kendaraan.value}`
+  );
+  const kendaraanData = await kendaraanRes.json();
+  if (kendaraanData[0]) {
+    await fetch(`http://localhost:3000/kendaraan/${kendaraanData[0].id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...kendaraanData[0], status: "Tersedia" }),
+    });
+  }
+
+  dialog.value = false;
+  await fetchData();
+  $q.notify({ type: "positive", message: "Pengembalian berhasil disimpan" });
+};
+
+onMounted(fetchData);
+</script>
