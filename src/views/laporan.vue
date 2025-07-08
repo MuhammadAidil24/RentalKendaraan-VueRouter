@@ -79,8 +79,12 @@ const columns = [
 
 const fetchData = async () => {
   const [resPenyewaan, resPengembalian] = await Promise.all([
-    fetch("http://localhost:3000/penyewaan"),
-    fetch("http://localhost:3000/pengembalian"),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/penyewaan"
+    ),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pengembalian"
+    ),
   ]);
 
   penyewaan.value = await resPenyewaan.json();

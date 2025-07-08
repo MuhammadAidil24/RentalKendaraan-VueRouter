@@ -103,7 +103,9 @@ const editId = ref(null);
 
 // Ambil data dari JSON Server
 const fetchKendaraan = async () => {
-  const res = await fetch("http://localhost:3000/kendaraan");
+  const res = await fetch(
+    "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan"
+  );
   kendaraan.value = await res.json();
 };
 
@@ -140,11 +142,14 @@ const handleFileUpload = async (event) => {
 
 // Tambah data kendaraan
 const addKendaraan = async () => {
-  await fetch("http://localhost:3000/kendaraan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(form.value),
-  });
+  await fetch(
+    "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form.value),
+    }
+  );
   resetForm();
   fetchKendaraan();
 };
@@ -158,20 +163,26 @@ const editKendaraan = (item) => {
 
 // Update data
 const updateKendaraan = async () => {
-  await fetch(`http://localhost:3000/kendaraan/${editId.value}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(form.value),
-  });
+  await fetch(
+    `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan/${editId.value}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form.value),
+    }
+  );
   resetForm();
   fetchKendaraan();
 };
 
 // Hapus data
 const deleteKendaraan = async (id) => {
-  await fetch(`http://localhost:3000/kendaraan/${id}`, {
-    method: "DELETE",
-  });
+  await fetch(
+    `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
   fetchKendaraan();
 };
 

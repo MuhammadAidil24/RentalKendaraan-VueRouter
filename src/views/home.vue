@@ -91,11 +91,15 @@ const columns = [
 // Ambil data dari json-server
 onMounted(async () => {
   const [kendaraan, penyewaan, pelanggan] = await Promise.all([
-    fetch("http://localhost:3000/kendaraan").then((r) => r.json()),
-    fetch("http://localhost:3000/penyewaan?_sort=id&_order=desc&_limit=5").then(
-      (r) => r.json()
-    ),
-    fetch("http://localhost:3000/pelanggan").then((r) => r.json()),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan"
+    ).then((r) => r.json()),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/penyewaan?_sort=id&_order=desc&_limit=5"
+    ).then((r) => r.json()),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pelanggan"
+    ).then((r) => r.json()),
   ]);
 
   // Update statistik

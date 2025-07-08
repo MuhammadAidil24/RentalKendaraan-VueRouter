@@ -9,7 +9,7 @@ export const useAuthStore = defineStore("auth", {
     async login(username, password) {
       try {
         const res = await fetch(
-          `http://localhost:3000/users?username=${username}&password=${password}`
+          `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/users?username=${username}&password=${password}`
         );
         const data = await res.json();
 

@@ -185,7 +185,9 @@ const getUserInfo = async () => {
       return;
     }
 
-    const response = await axios.get(`http://localhost:3000/users`);
+    const response = await axios.get(
+      `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/users`
+    );
 
     if (response.data && Array.isArray(response.data)) {
       // Cari user berdasarkan ID
@@ -233,7 +235,9 @@ const getUserInfo = async () => {
 // ✅ Fungsi alternatif untuk mendapatkan semua user (jika diperlukan)
 const getAllUsers = async () => {
   try {
-    const response = await axios.get(`http://localhost:3000/users`);
+    const response = await axios.get(
+      `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/users`
+    );
 
     if (
       response.data &&
@@ -268,7 +272,9 @@ onMounted(() => {
 // ✅ Fungsi untuk mendapatkan user berdasarkan username (alternatif)
 const getUserByUsername = async (username) => {
   try {
-    const response = await axios.get(`http://localhost:3000/users`);
+    const response = await axios.get(
+      `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/users`
+    );
 
     if (response.data && Array.isArray(response.data)) {
       const user = response.data.find((u) => u.username === username);

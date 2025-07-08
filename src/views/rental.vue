@@ -95,9 +95,15 @@ const columns = [
 
 const fetchData = async () => {
   const [res1, res2, res3] = await Promise.all([
-    fetch("http://localhost:3000/penyewaan"),
-    fetch("http://localhost:3000/pelanggan"),
-    fetch("http://localhost:3000/kendaraan"),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/penyewaan"
+    ),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pelanggan"
+    ),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan"
+    ),
   ]);
   penyewaan.value = await res1.json();
   const pelanggan = await res2.json();
@@ -123,26 +129,34 @@ const simpanPenyewaan = async () => {
     return;
   }
 
-  await fetch("http://localhost:3000/penyewaan", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      nama_pelanggan: form.value.pelanggan,
-      nama_kendaraan: form.value.kendaraan,
-      tanggal: form.value.tanggal,
-      status: "Aktif",
-    }),
-  });
+  await fetch(
+    "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/penyewaan",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nama_pelanggan: form.value.pelanggan,
+        nama_kendaraan: form.value.kendaraan,
+        tanggal: form.value.tanggal,
+        status: "Aktif",
+      }),
+    }
+  );
 
-  await fetch(`http://localhost:3000/kendaraan?nama=${form.value.kendaraan}`)
+  await fetch(
+    `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan?nama=${form.value.kendaraan}`
+  )
     .then((r) => r.json())
     .then(async (data) => {
       if (data[0]) {
-        await fetch(`http://localhost:3000/kendaraan/${data[0].id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data[0], status: "Disewa" }),
-        });
+        await fetch(
+          `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan/${data[0].id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...data[0], status: "Disewa" }),
+          }
+        );
       }
     });
 

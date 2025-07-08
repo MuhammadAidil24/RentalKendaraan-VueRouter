@@ -92,7 +92,9 @@ const columns = [
 ];
 
 const fetchPelanggan = async () => {
-  const res = await fetch("http://localhost:3000/pelanggan");
+  const res = await fetch(
+    "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pelanggan"
+  );
   pelanggan.value = await res.json();
 };
 
@@ -123,8 +125,8 @@ const simpanPelanggan = async () => {
   }
 
   const url = isEdit.value
-    ? `http://localhost:3000/pelanggan/${selectedId.value}`
-    : `http://localhost:3000/pelanggan`;
+    ? `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pelanggan/${selectedId.value}`
+    : `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pelanggan`;
 
   const method = isEdit.value ? "PUT" : "POST";
 
@@ -149,7 +151,10 @@ const hapusPelanggan = async (id) => {
     cancel: true,
     persistent: true,
   }).onOk(async () => {
-    await fetch(`http://localhost:3000/pelanggan/${id}`, { method: "DELETE" });
+    await fetch(
+      `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pelanggan/${id}`,
+      { method: "DELETE" }
+    );
     await fetchPelanggan();
     $q.notify({ type: "positive", message: "Data berhasil dihapus" });
   });

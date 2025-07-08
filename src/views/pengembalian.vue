@@ -95,8 +95,12 @@ const columns = [
 
 const fetchData = async () => {
   const [pengRes, sewaRes] = await Promise.all([
-    fetch("http://localhost:3000/pengembalian"),
-    fetch("http://localhost:3000/penyewaan"),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pengembalian"
+    ),
+    fetch(
+      "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/penyewaan"
+    ),
   ]);
   const pengData = await pengRes.json();
   const sewaData = await sewaRes.json();
@@ -135,33 +139,42 @@ const simpanPengembalian = async () => {
     return;
   }
 
-  await fetch("http://localhost:3000/pengembalian", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      penyewaan_id: data.id, // ⬅️ WAJIB DITAMBAHKAN
-      tanggal_kembali: form.value.tanggal_kembali,
-      denda: `Rp ${parseInt(form.value.denda).toLocaleString("id-ID")}`,
-      kondisi: form.value.kondisi,
-    }),
-  });
+  await fetch(
+    "https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/pengembalian",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        penyewaan_id: data.id, // ⬅️ WAJIB DITAMBAHKAN
+        tanggal_kembali: form.value.tanggal_kembali,
+        denda: `Rp ${parseInt(form.value.denda).toLocaleString("id-ID")}`,
+        kondisi: form.value.kondisi,
+      }),
+    }
+  );
 
-  await fetch(`http://localhost:3000/penyewaan/${data.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...data, status: "Kembali" }),
-  });
+  await fetch(
+    `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/penyewaan/${data.id}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, status: "Kembali" }),
+    }
+  );
 
   const kendaraanRes = await fetch(
-    `http://localhost:3000/kendaraan?nama=${data.nama_kendaraan.value}`
+    `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan?nama=${data.nama_kendaraan.value}`
   );
   const kendaraanData = await kendaraanRes.json();
   if (kendaraanData[0]) {
-    await fetch(`http://localhost:3000/kendaraan/${kendaraanData[0].id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...kendaraanData[0], status: "Tersedia" }),
-    });
+    await fetch(
+      `https://701168b2-1ff2-42a6-a846-877d8350bcd8-00-212yd22juhy5j.sisko.replit.dev/kendaraan/${kendaraanData[0].id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...kendaraanData[0], status: "Tersedia" }),
+      }
+    );
   }
 
   dialog.value = false;
